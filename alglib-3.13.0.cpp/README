@@ -1,0 +1,11 @@
+BUILDING:
+
+Prerequisites for all platforms:
+	CMake 2.8.0 or later
+
+Linux:
+	mkdir build
+	cd build/
+	cmake ..
+	make
+
