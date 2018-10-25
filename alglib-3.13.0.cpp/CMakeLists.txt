@@ -2,8 +2,45 @@ cmake_minimum_required(VERSION 2.8.0)
 
 project(alglib)
 
-aux_source_directory(src/ SOURCES_LIST)
+set(ALGLIB_VERSION "3.13.0")
+string(REGEX MATCHALL "[0-9]+" ALGLIB_VERSIONS ${ALGLIB_VERSION})
+list(GET ALGLIB_VERSIONS 0 ALGLIB_VERSION_MAJOR)
+list(GET ALGLIB_VERSIONS 1 ALGLIB_VERSION_MINOR)
+list(GET ALGLIB_VERSIONS 2 ALGLIB_VERSION_PATCH)
+message(STATUS "ALGLIB version ${VERSION} (${ALGLIB_VERSION_MAJOR}.${ALGLIB_VERSION_MINOR}.${ALGLIB_VERSION_PATCH})")
 
-add_library(alg SHARED ${SOURCES_LIST})
-set_target_properties(alg PROPERTIES VERSION 3.13.0)
+set(TARGET_NAME ${PROJECT_NAME})
+set(PACKAGE_NAME ${TARGET_NAME}-${ALGLIB_VERSION_MAJOR}.${ALGLIB_VERSION_MINOR}.${ALGLIB_VERSION_PATCH})
+message(STATUS "PACKAGE NAME: ${PACKAGE_NAME}")
+
+message(STATUS "Setting installation directory to ${CMAKE_INSTALL_PREFIX}")
+
+if (NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Release)
+	message(STATUS "Setting build type to ${CMAKE_BUILD_TYPE}")
+else ()
+	message(STATUS "Build type set to ${CMAKE_BUILD_TYPE} by user.")
+endif()
+
+aux_source_directory(src/ SOURCES_LIST)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/shared/)
+add_library(${TARGET_NAME} SHARED ${SOURCES_LIST})
+set_target_properties(${TARGET_NAME} PROPERTIES VERSION "${ALGLIB_VERSION_MAJOR}.${ALGLIB_VERSION_MINOR}.${ALGLIB_VERSION_PATCH}")
+
+# Generate pkg-config file
+include("${CMAKE_CURRENT_SOURCE_DIR}/pkg-config/GeneratePkgConfigFile.cmake")
+
+
+# Install
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
+		DESTINATION include/${PACKAGE_NAME}
+		FILES_MATCHING PATTERN "*.h")
+
+install(TARGETS ${TARGET_NAME}
+		LIBRARY DESTINATION lib/${PACKAGE_NAME})
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pkg-config/
+		DESTINATION "/usr/local/lib/pkgconfig/"
+		FILES_MATCHING PATTERN "*.pc")
 
